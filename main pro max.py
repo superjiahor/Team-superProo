@@ -51,7 +51,7 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.image = pygame.transform.scale(player_image, (70, 70))
         self.rect = self.image.get_rect(center=(x, y))
-        self.health = 200
+        self.health = 500
         self.shoot_delay = 250  # milliseconds
         self.last_shoot_time = pygame.time.get_ticks()
 
