@@ -9,8 +9,9 @@ Installation Guide:
 1) Download the main pro max.py file
 2) Download all the files available in the profile
 3) Open with Visual Studio Code to run it
-4) Ensure all the files or images have been downloaded and connected with the code
-5) Attempt to run the game
+4) Ensure all the files or images have been downloaded and saved into one folder
+5) Open Folder on Visual Studio Code
+6) Select import file and attempt to run the game 
 
 How to Play:
 Easy Mode
