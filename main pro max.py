@@ -3,24 +3,29 @@ import random
 
 pygame.init()
 
+# Constants
 WIDTH, HEIGHT = 1000, 600
 FPS = 60
 PLAYER_VEL = 5
 LASER_VEL = 10
 ENEMY_VEL = 3
-ENEMY_GEN_DELAY = 2000 
+ENEMY_GEN_DELAY = 2000
 BG_COLOR = (255, 255, 255)
+
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Coin Master")
 icon = pygame.image.load('icon.png')
 pygame.display.set_icon(icon)
 
+# Colors
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
+
 font = pygame.font.Font(None, 36)
 
+# Load assets
 background_image = pygame.image.load('background.png')
 background_image = pygame.transform.scale(background_image, (WIDTH, HEIGHT))
 
@@ -36,16 +41,20 @@ player_laser_image = pygame.transform.scale(player_laser_image, (30, 10))
 enemy_laser_image = pygame.image.load('enemy_laser.png')
 enemy_laser_image = pygame.transform.scale(enemy_laser_image, (30, 10))
 
+# Soundtrack
+pygame.mixer.music.load('soundtrack.mp3')  # Load the soundtrack
+pygame.mixer.music.play(-1)  # Loop the soundtrack indefinitely
+
+# Player class
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
-        self.image = player_image
-        self.image = pygame.transform.scale(self.image, (70, 70))
+        self.image = pygame.transform.scale(player_image, (70, 70))
         self.rect = self.image.get_rect(center=(x, y))
         self.health = 200
-        self.shoot_delay = 250  # 毫秒
+        self.shoot_delay = 250  # milliseconds
         self.last_shoot_time = pygame.time.get_ticks()
-    
+
     def take_damage(self, amount):
         self.health -= amount
         if self.health < 0:
@@ -61,7 +70,7 @@ class Player(pygame.sprite.Sprite):
             self.rect.y -= PLAYER_VEL
         if keys[pygame.K_DOWN]:
             self.rect.y += PLAYER_VEL
-        
+
         # Continuous shooting
         current_time = pygame.time.get_ticks()
         if keys[pygame.K_SPACE] and (current_time - self.last_shoot_time) >= self.shoot_delay:
@@ -73,11 +82,11 @@ class Player(pygame.sprite.Sprite):
         all_sprites.add(laser)
         player_lasers.add(laser)
 
+# Enemy class
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
-        self.image = enemy_image
-        self.image = pygame.transform.scale(self.image, (65, 65))
+        self.image = pygame.transform.scale(enemy_image, (65, 65))
         self.rect = self.image.get_rect(center=(x, y))
         self.health = 10
         self.attack_timer = 0
@@ -102,18 +111,20 @@ class Enemy(pygame.sprite.Sprite):
         if self.rect.x > 0 and player.health > 0:
             player.take_damage(5)
 
+# Laser class
 class Laser(pygame.sprite.Sprite):
     def __init__(self, x, y, speed, color, image):
         super().__init__()
         self.image = image
         self.rect = self.image.get_rect(center=(x, y))
         self.speed = speed
-    
+
     def update(self):
         self.rect.x += self.speed
         if self.rect.left > WIDTH or self.rect.right < 0:
             self.kill()
 
+# Spawn enemy function
 def spawn_enemy():
     x = WIDTH
     y = random.randint(50, HEIGHT - 50)
@@ -121,6 +132,7 @@ def spawn_enemy():
     all_sprites.add(enemy)
     enemies.add(enemy)
 
+# Draw cover screen
 def draw_cover():
     screen.fill(BLACK)
     cover_text = font.render("Welcome to Infinite Enemy Waves", True, WHITE)
@@ -129,30 +141,29 @@ def draw_cover():
     screen.blit(start_text, (screen.get_width() // 2 - start_text.get_width() // 2, screen.get_height() // 2 + cover_text.get_height() // 2))
     pygame.display.flip()
 
+# Game loop
 def game_loop():
     global player
-    # Initialize sprite groups
     global all_sprites, player_lasers, enemy_lasers, enemies
 
-    # Create sprite groups
     all_sprites = pygame.sprite.Group()
     player_lasers = pygame.sprite.Group()
     enemy_lasers = pygame.sprite.Group()
     enemies = pygame.sprite.Group()
 
-    # Create player object
     player = Player(50, HEIGHT // 2)
-
     all_sprites.add(player)
 
     score = 0
     spawn_timer = 0
+    game_over = False
 
-    running = True
-    while running:
+    while not game_over:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                game_over = True
+            elif event.type == pygame.MOUSEBUTTONDOWN and player.health <= 0:
+                game_loop()  # Restart the game on click after game over
 
         spawn_timer += 1
         if spawn_timer > 100:
@@ -181,11 +192,9 @@ def game_loop():
         screen.blit(score_text, (10, 50))
 
         if player.health <= 0:
-            game_over_text = font.render("Game Over", True, WHITE)
-            screen.blit(game_over_text, (screen.get_width() // 2 - 100, screen.get_height() // 2))
+            game_over_text = font.render("Game Over - Click to Restart", True, WHITE)
+            screen.blit(game_over_text, (screen.get_width() // 2 - 150, screen.get_height() // 2))
             pygame.display.flip()
-            pygame.time.wait(2000)
-            running = False
 
         pygame.display.flip()
         pygame.time.Clock().tick(FPS)
@@ -197,9 +206,8 @@ while cover_mode:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             cover_mode = False
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                cover_mode = False
-                game_loop()
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+            cover_mode = False
+            game_loop()
 
 pygame.quit()
